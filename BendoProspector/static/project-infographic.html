@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional 3D Geo-Interfacing Application - Project Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brilliant-blue': {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        'elevation-1': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'elevation-2': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'elevation-3': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f8fafc 100%);
+        }
+        
+        .card-premium {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-premium:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(30, 58, 138, 0.25);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .flow-connector {
+            position: relative;
+        }
+        
+        .flow-connector::before {
+            content: '';
+            position: absolute;
+            left: 1.25rem;
+            top: 3rem;
+            bottom: -1rem;
+            width: 3px;
+            background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%);
+            border-radius: 1.5px;
+        }
+        
+        .flow-step {
+            position: relative;
+            z-index: 10;
+        }
+        
+        .flow-step::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 50%;
+            border: 3px solid #f0f9ff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .priority-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+        
+        .icon-large {
+            font-size: 3rem;
+            line-height: 1;
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #3b82f6 50%, transparent 100%);
+            margin: 4rem 0;
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .8;
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-gray-800 antialiased">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-7xl">
+        
+        <header class="text-center mb-16 sm:mb-20 lg:mb-24">
+            <div class="inline-block mb-6">
+                <div class="icon-large pulse-animation">🌍</div>
+            </div>
+            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black gradient-text mb-6 leading-tight">
+                Professional 3D Geo-Interfacing
+            </h1>
+            <p class="text-xl sm:text-2xl md:text-3xl font-semibold text-brilliant-blue-700 mb-4">
+                Advanced Geological Data Visualization Platform
+            </p>
+            <p class="text-base sm:text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed">
+                Comprehensive project blueprint for developing a high-performance, professional-grade 3D visualization tool specifically engineered for complex geospatial data analysis and terrain visualization.
+            </p>
+        </header>
+
+        <main class="space-y-16 sm:space-y-20 lg:space-y-24">
+
+            <section id="critical-requirements" class="relative">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16 text-brilliant-blue-900">
+                    Critical Requirements & Specifications
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+                    
+                    <div class="card-premium rounded-2xl p-6 sm:p-8 text-center shadow-elevation-2">
+                        <div class="icon-large mb-6">🗺️</div>
+                        <h3 class="text-xl sm:text-2xl font-bold mb-4 text-brilliant-blue-800">Core 3D Visualization</h3>
+                        <p class="text-gray-600 text-sm sm:text-base leading-relaxed">
+                            Advanced rendering of complex 3D terrain, elevation models, satellite imagery overlays, and comprehensive vector data visualization including points, lines, and polygons.
+                        </p>
+                    </div>
+
+                    <div class="card-premium rounded-2xl p-6 sm:p-8 text-center shadow-elevation-2">
+                        <div class="icon-large mb-6">⚙️</div>
+                        <h3 class="text-xl sm:text-2xl font-bold mb-4 text-brilliant-blue-800">Zero Waste Components</h3>
+                        <p class="text-gray-600 text-sm sm:text-base leading-relaxed">
+                            Strict focus on functional, purposeful elements. Every component serves geological analysis with emphasis on stability and data integrity over decorative features.
+                        </p>
+                    </div>
+
+                    <div class="card-premium rounded-2xl p-6 sm:p-8 text-center shadow-elevation-2">
+                        <div class="icon-large mb-6">⚡</div>
+                        <h3 class="text-xl sm:text-2xl font-bold mb-4 text-brilliant-blue-800">Performance Excellence</h3>
+                        <p class="text-gray-600 text-sm sm:text-base leading-relaxed">
+                            Optimized rendering pipeline, efficient geometry generation, streamlined data handling, and minimal resource consumption for smooth user experience.
+                        </p>
+                    </div>
+                    
+                    <div class="card-premium rounded-2xl p-6 sm:p-8 text-center shadow-elevation-2">
+                        <div class="icon-large mb-6">💻</div>
+                        <h3 class="text-xl sm:text-2xl font-bold mb-4 text-brilliant-blue-800">Professional Interface</h3>
+                        <p class="text-gray-600 text-sm sm:text-base leading-relaxed">
+                            Clean, intuitive design optimized for geological professionals. Clear functionality hierarchy with seamless access to core analytical tools.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <section id="priority-analysis" class="relative">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16 text-brilliant-blue-900">
+                    Development Priority Analysis
+                </h2>
+                <div class="card-premium rounded-3xl p-8 sm:p-12 shadow-elevation-3">
+                    <p class="text-center text-gray-600 mb-8 text-base sm:text-lg leading-relaxed max-w-4xl mx-auto">
+                        Strategic development approach prioritizing core 3D viewport functionality as the essential foundation. 
+                        All subsequent features build upon this stable, high-performance rendering foundation.
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+            
+            <section id="development-workflow" class="relative">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16 text-brilliant-blue-900">
+                    Strategic Development Workflow
+                </h2>
+                <div class="card-premium rounded-3xl p-8 sm:p-12 shadow-elevation-3">
+                    <p class="text-center text-gray-600 mb-12 text-base sm:text-lg leading-relaxed max-w-4xl mx-auto">
+                        Methodical feature-by-feature implementation ensuring stable foundation before complexity addition. 
+                        This structured approach guarantees modularity, maintainability, and seamless integration.
+                    </p>
+                    <div class="flow-connector max-w-4xl mx-auto">
+                        <div class="flow-step mb-12 ml-12">
+                            <h3 class="text-xl sm:text-2xl font-bold text-brilliant-blue-800 mb-4">1. 3D Viewport Foundation</h3>
+                            <ul class="space-y-2 text-gray-600 text-sm sm:text-base">
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Three.js integration for robust WebGL rendering pipeline</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Precision camera controls with seamless OrbitControls integration</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Local XYZ coordinate system with future geospatial projection support</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flow-step mb-12 ml-12">
+                            <h3 class="text-xl sm:text-2xl font-bold text-brilliant-blue-800 mb-4">2. Terrain Engine Implementation</h3>
+                            <ul class="space-y-2 text-gray-600 text-sm sm:text-base">
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Heightmap data processing for photorealistic terrain generation</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Efficient geometry algorithms optimized for performance</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Advanced material system supporting texture mapping and geological styling</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flow-step mb-12 ml-12">
+                            <h3 class="text-xl sm:text-2xl font-bold text-brilliant-blue-800 mb-4">3. Geospatial Data Integration</h3>
+                            <ul class="space-y-2 text-gray-600 text-sm sm:text-base">
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Extensible architecture supporting points, lines, and polygon geometries</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Forward-compatible design for GeoJSON and industry standard formats</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flow-step ml-12">
+                            <h3 class="text-xl sm:text-2xl font-bold text-brilliant-blue-800 mb-4">4. Interactive Analysis Tools</h3>
+                            <ul class="space-y-2 text-gray-600 text-sm sm:text-base">
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Precision mouse-based navigation with multi-touch support</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-brilliant-blue-500 mr-3 mt-1">•</span>
+                                    <span>Advanced raycasting for object selection and spatial queries</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <section id="quality-standards" class="relative">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16 text-brilliant-blue-900">
+                    Quality Standards & Implementation Principles
+                </h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
+                    <div class="card-premium rounded-3xl p-8 sm:p-10 shadow-elevation-3 border-l-4 border-emerald-500">
+                        <h3 class="text-2xl sm:text-3xl font-bold mb-6 text-emerald-700 flex items-center">
+                            <span class="mr-4">✓</span>
+                            Essential Requirements
+                        </h3>
+                        <ul class="space-y-4 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-3 mt-1 font-bold">✓</span>
+                                <div>
+                                    <span class="font-semibold">Exceptional Code Quality:</span>
+                                    <span class="text-gray-600 block text-sm mt-1">Clean, modular, extensively documented codebase with comprehensive error handling</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-3 mt-1 font-bold">✓</span>
+                                <div>
+                                    <span class="font-semibold">Comprehensive Error Management:</span>
+                                    <span class="text-gray-600 block text-sm mt-1">Professional user feedback systems without disruptive browser alerts</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-3 mt-1 font-bold">✓</span>
+                                <div>
+                                    <span class="font-semibold">Universal Responsiveness:</span>
+                                    <span class="text-gray-600 block text-sm mt-1">Seamless adaptation across mobile, tablet, and desktop platforms</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-3 mt-1 font-bold">✓</span>
+                                <div>
+                                    <span class="font-semibold">Future-Ready Architecture:</span>
+                                    <span class="text-gray-600 block text-sm mt-1">Extensible framework supporting effortless feature integration</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card-premium rounded-3xl p-8 sm:p-10 shadow-elevation-3 border-l-4 border-red-500">
+                        <h3 class="text-2xl sm:text-3xl font-bold mb-6 text-red-700 flex items-center">
+                            <span class="mr-4">✗</span>
+                            Strict Prohibitions
+                        </h3>
+                        <ul class="space-y-4 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3 mt-1 font-bold">✗</span>
+                                <div>
+                                    <span class="font-semibold">Game-Like Visual Effects:</span>
+                                    <span class="text-gray-600 block text-sm mt-1">No simplistic animations detracting from data analysis focus</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3 mt-1 font-bold">✗</span>
+                                <div>
+                                    <span class="font-semibold">Unnecessary Dependencies:</span>
+                                    <span class="text-gray-600 block text-sm mt-1">Eliminate bloatware libraries without substantial functional benefit</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3 mt-1 font-bold">✗</span>
+                                <div>
+                                    <span class="font-semibold">Decorative UI Elements:</span>
+                                    <span class="text-gray-600 block text-sm mt-1">Remove purely aesthetic components disrupting workflow efficiency</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-3 mt-1 font-bold">✗</span>
+                                <div>
+                                    <span class="font-semibold">Complex Maintenance Code:</span>
+                                    <span class="text-gray-600 block text-sm mt-1">Avoid difficult-to-debug, maintain, or extend implementations</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <section id="technology-stack" class="relative">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16 text-brilliant-blue-900">
+                    Technology Stack & Architecture
+                </h2>
+                <div class="card-premium rounded-3xl p-8 sm:p-12 shadow-elevation-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
+                        <div class="text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-brilliant-blue-500 to-brilliant-blue-600 rounded-2xl flex items-center justify-center">
+                                <span class="text-white text-2xl font-bold">3D</span>
+                            </div>
+                            <h3 class="text-xl font-bold mb-3 text-brilliant-blue-800">Core Engine</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">Three.js WebGL rendering with OrbitControls for professional 3D viewport management</p>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-brilliant-blue-500 to-brilliant-blue-600 rounded-2xl flex items-center justify-center">
+                                <span class="text-white text-2xl font-bold">UI</span>
+                            </div>
+                            <h3 class="text-xl font-bold mb-3 text-brilliant-blue-800">Interface</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">Modern ES6+ JavaScript with Tailwind CSS for responsive, professional design</p>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-brilliant-blue-500 to-brilliant-blue-600 rounded-2xl flex items-center justify-center">
+                                <span class="text-white text-2xl font-bold">DB</span>
+                            </div>
+                            <h3 class="text-xl font-bold mb-3 text-brilliant-blue-800">Data Layer</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">Firebase integration for geological data persistence and real-time synchronization</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-12 p-6 bg-gradient-to-r from-brilliant-blue-50 to-blue-50 rounded-2xl border border-brilliant-blue-100">
+                        <h4 class="text-lg font-semibold text-brilliant-blue-800 mb-3">Performance Optimization Strategy</h4>
+                        <p class="text-gray-700 text-sm leading-relaxed">
+                            Implementation prioritizes efficient rendering through level-of-detail (LOD) systems, frustum culling, 
+                            and progressive asset loading. The architecture supports complex geological datasets while maintaining 
+                            60fps performance targets across modern devices.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-16 sm:mt-20 lg:mt-24 py-8 sm:py-12 border-t border-brilliant-blue-200">
+            <div class="mb-4">
+                <div class="icon-large">🗺️</div>
+            </div>
+            <p class="text-gray-600 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+                This comprehensive project blueprint establishes the foundation for a revolutionary 
+                3D geological data visualization platform, setting new standards for professional geospatial analysis tools.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function wrapLabels(label, maxWidth) {
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (const word of words) {
+                const testLine = currentLine ? `${currentLine} ${word}` : word;
+                if (testLine.length <= maxWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    } else {
+                        lines.push(word);
+                    }
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines;
+        }
+
+        const chartLabels = [
+            '3D Viewport Foundation',
+            'Terrain Engine Implementation', 
+            'Geospatial Data Integration',
+            'Interactive Analysis Tools'
+        ];
+        
+        const wrappedLabels = chartLabels.map(label => wrapLabels(label, 16));
+
+        const ctx = document.getElementById('priorityChart').getContext('2d');
+        const priorityChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: wrappedLabels,
+                datasets: [{
+                    label: 'Development Priority Level',
+                    data: [95, 85, 70, 60],
+                    backgroundColor: [
+                        'rgba(30, 58, 138, 0.9)',
+                        'rgba(37, 99, 235, 0.9)',
+                        'rgba(59, 130, 246, 0.9)',
+                        'rgba(96, 165, 250, 0.9)'
+                    ],
+                    borderColor: [
+                        'rgba(30, 58, 138, 1)',
+                        'rgba(37, 99, 235, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(96, 165, 250, 1)'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 20,
+                        bottom: 20,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(59, 130, 246, 0.1)',
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            color: 'rgba(55, 65, 81, 0.7)',
+                            font: {
+                                family: 'Inter',
+                                size: 12,
+                                weight: '500'
+                            },
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Priority Level (%)',
+                            color: 'rgba(30, 58, 138, 0.8)',
+                            font: {
+                                family: 'Inter',
+                                size: 14,
+                                weight: '600'
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: 'rgba(55, 65, 81, 0.7)',
+                            font: {
+                                family: 'Inter',
+                                size: 11,
+                                weight: '500'
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 58, 138, 0.95)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(59, 130, 246, 0.8)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        titleFont: {
+                            family: 'Inter',
+                            size: 14,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            family: 'Inter',
+                            size: 13,
+                            weight: '500'
+                        },
+                        callbacks: {
+                            title: function(context) {
+                                const index = context[0].dataIndex;
+                                return chartLabels[index];
+                            },
+                            label: function(context) {
+                                return `Priority: ${context.parsed.y}%`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card-premium');
+            
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+                observer.observe(card);
+            });
+            
+            const flowSteps = document.querySelectorAll('.flow-step');
+            flowSteps.forEach((step, index) => {
+                step.style.opacity = '0';
+                step.style.transform = 'translateX(-30px)';
+                step.style.transition = `opacity 0.6s ease-out ${index * 0.2}s, transform 0.6s ease-out ${index * 0.2}s`;
+                observer.observe(step);
+            });
+        });
+    </script>
+</body>
+</html>

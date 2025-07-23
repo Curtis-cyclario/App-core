@@ -1,0 +1,181 @@
+Roger that. Here's a **full rollback + rebuild scaffold** for your terrain rendering app on Replit, assuming you're using **Python + Flask or FastAPI for backend** and **Three.js for frontend**. This rebuild focuses on **clean module separation, robust terrain generation, and reliable rendering loops**.
+
+---
+
+## ✅ Folder Structure (clean modular)
+
+```
+/project-root
+│
+├── static/
+│   ├── js/
+│   │   └── terrain.js            # Rebuilt terrain rendering logic (Three.js)
+│   └── index.html                # Frontend entrypoint
+│
+├── app/
+│   ├── __init__.py
+│   └── main.py                   # Python entrypoint (Flask/FastAPI/etc)
+│
+├── terrain/
+│   ├── __init__.py
+│   └── generator.py              # Python-side terrain generation if needed
+│
+├── requirements.txt
+└── replit.nix (or .replit)
+```
+
+---
+
+## 🔁 Rewritten `main.py` (Python backend)
+
+Here's a **Flask-based scaffold**, but can switch to FastAPI if needed.
+
+```python
+# app/main.py
+from flask import Flask, render_template
+import os
+
+app = Flask(__name__, static_folder="../static", template_folder="../static")
+
+@app.route("/")
+def index():
+    return app.send_static_file("index.html")
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
+```
+
+---
+
+## 🌍 `terrain.js` — Clean Terrain Pipeline (Three.js)
+
+```js
+// static/js/terrain.js
+import * as THREE from 'https://cdn.skypack.dev/three@0.145.0';
+import { OrbitControls } from 'https://cdn.skypack.dev/three@0.145.0/examples/jsm/controls/OrbitControls.js';
+
+let camera, scene, renderer, controls;
+
+init();
+animate();
+
+function init() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x101014);
+
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 5000);
+    camera.position.set(0, 100, 200);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(50, 200, 100);
+    light.castShadow = true;
+    scene.add(light);
+
+    const ground = generateTerrain();
+    scene.add(ground);
+
+    window.addEventListener('resize', onWindowResize, false);
+}
+
+function generateTerrain() {
+    const geometry = new THREE.PlaneGeometry(300, 300, 100, 100);
+    geometry.rotateX(-Math.PI / 2);
+
+    for (let i = 0; i < geometry.attributes.position.count; i++) {
+        let y = Math.random() * 10;
+        geometry.attributes.position.setY(i, y);
+    }
+
+    geometry.computeVertexNormals();
+
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x556b2f,
+        wireframe: false,
+        flatShading: true,
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.receiveShadow = true;
+    return mesh;
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+}
+```
+
+---
+
+## 🧩 `index.html` — Loads Terrain App
+
+```html
+<!-- static/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bendigo Terrain Viewer</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script type="module" src="./js/terrain.js"></script>
+</body>
+</html>
+```
+
+---
+
+## 🧪 Test it on Replit:
+
+In `.replit`:
+
+```ini
+run = "python3 app/main.py"
+```
+
+In `replit.nix`, ensure dependencies like Flask and Python 3.10+ are included.
+
+---
+
+## 💥 Optional: Hook to Real Geological Data
+
+In `terrain/generator.py`, you could eventually parse GeoTIFFs or elevation CSVs for real Bendigo topo.
+
+---
+
+## ✅ Summary
+
+This rebuild will give you:
+
+* Clean module structure
+* Reliable Three.js rendering with OrbitControls
+* Expandable terrain generation logic
+* Easy rollback baseline
+
+Let me know if you want:
+
+* A real terrain loader (e.g., DEM/GeoTIFF parser)
+* FastAPI version
+* Ability to toggle geological overlays or export STL/OBJ
+
+Shall we deploy this template to Replit live?

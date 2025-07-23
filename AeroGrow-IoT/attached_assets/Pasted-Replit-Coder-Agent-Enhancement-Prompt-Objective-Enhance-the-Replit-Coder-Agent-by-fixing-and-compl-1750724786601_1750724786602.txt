@@ -1,0 +1,101 @@
+Replit Coder Agent Enhancement Prompt
+
+Objective: Enhance the Replit Coder Agent by fixing and completing the notifications dropdown and pop-ups, addressing bugs throughout the application, and implementing modern, visually appealing design elements to elevate the user experience.
+
+Tasks:
+
+
+
+
+
+Notifications Dropdown and Pop-ups:
+
+
+
+
+
+Fix any issues with the notifications dropdown, ensuring it displays correctly, is responsive, and handles all notification types (e.g., success, error, info).
+
+
+
+Complete the implementation of pop-up notifications, ensuring they are non-intrusive, dismissible, and consistent with the app’s design language.
+
+
+
+Ensure smooth animations for dropdown and pop-up transitions (e.g., slide-in, fade-in).
+
+
+
+Test for edge cases, such as rapid notification triggers or overflow scenarios.
+
+
+
+Bug Fixes:
+
+
+
+
+
+Identify and resolve bugs across the application, including but not limited to UI glitches, broken functionality, and performance issues.
+
+
+
+Ensure cross-browser compatibility (Chrome, Firefox, Safari) and responsiveness across devices (desktop, tablet, mobile).
+
+
+
+Fix any issues with state management or data persistence that may affect user interactions.
+
+
+
+Modern Visual Design:
+
+
+
+
+
+Update the UI with a modern, clean aesthetic, incorporating trends such as minimalism, smooth gradients, or neumorphism where appropriate.
+
+
+
+Use a consistent color palette (e.g., modern pastel or dark mode themes) and typography that aligns with current design standards.
+
+
+
+Add subtle animations and micro-interactions (e.g., hover effects, button transitions) to enhance user engagement.
+
+
+
+Ensure accessibility compliance (e.g., sufficient color contrast, keyboard navigation support).
+
+Deliverables:
+
+
+
+
+
+Fully functional notifications dropdown and pop-up system.
+
+
+
+A bug-free application with improved performance and reliability.
+
+
+
+A visually stunning, modern UI that enhances the user experience while maintaining usability and accessibility.
+
+Constraints:
+
+
+
+
+
+Maintain compatibility with Replit’s existing tech stack and infrastructure.
+
+
+
+Ensure changes do not degrade performance or introduce new bugs.
+
+
+
+Follow Replit’s branding guidelines for consistency.

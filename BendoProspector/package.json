@@ -1,0 +1,1 @@
+{"name":"workspace","version":"1.0.0","main":"index.js","scripts":{"dev":"node dev.js","start":"python main.py","build":"echo Python backend ready","test":"echo no test specified"},"keywords":[],"author":"","license":"ISC","description":"","dependencies":{"express":"^4.21.2"}}

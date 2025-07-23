@@ -1,0 +1,185 @@
+Replit Coder Agent Prompt: 3D X-ray Model Interfacer for Bendigo Underground Works
+
+Objective: Develop a web-based 3D X-ray model interfacer that visualizes Bendigo’s underground works (mines, tunnels, geological topology) with integrated historical gold maps. Create an interactive, educational, and visually stunning tool for researchers, historians, and the public to explore Bendigo’s mining heritage.
+
+Tasks:
+
+
+
+
+
+3D Visualization Engine:
+
+
+
+
+
+Use Three.js or Babylon.js to render a 3D model of Bendigo’s underground works, including mine shafts, tunnels, and geological layers.
+
+
+
+Implement an X-ray effect (toggleable transparency) to reveal subsurface structures and topology.
+
+
+
+Support smooth navigation (pan, zoom, rotate) and layer toggling (e.g., rock types, water tables).
+
+
+
+Historical Gold Maps Integration:
+
+
+
+
+
+Source digitized historical gold maps of Bendigo (e.g., from public archives or simulated data if unavailable).
+
+
+
+Overlay maps as 2D/3D textures onto the model, aligning with real-world coordinates.
+
+
+
+Add interactive annotations for key sites (e.g., major gold finds, historical events) with pop-up details.
+
+
+
+Data Processing:
+
+
+
+
+
+Ingest geological and topological data (e.g., CSV, GeoJSON) to generate accurate 3D models.
+
+
+
+Simulate missing data with procedurally generated topology if necessary, ensuring historical accuracy where possible.
+
+
+
+Create a backend (Node.js/Express) to serve data efficiently.
+
+
+
+User Interface:
+
+
+
+
+
+Build a React-based UI with controls for model navigation, layer selection, and map overlays.
+
+
+
+Add a timeline slider to visualize changes in mining activity over time (e.g., 1850s–1900s).
+
+
+
+Include an educational mode with guided tours and narrated explanations of Bendigo’s mining history.
+
+
+
+Interactive Features:
+
+
+
+
+
+Allow users to place markers and share custom views with others via URL.
+
+
+
+Add a search function for specific mines, geological features, or historical events.
+
+
+
+Support VR/AR compatibility for immersive exploration (optional, using WebXR).
+
+
+
+Visual Design:
+
+
+
+
+
+Use a clean, modern UI with Tailwind CSS and subtle animations.
+
+
+
+Apply realistic lighting and shaders for the 3D model to enhance visual impact.
+
+
+
+Ensure accessibility (e.g., keyboard controls, high-contrast UI).
+
+
+
+Performance and Deployment:
+
+
+
+
+
+Optimize 3D rendering for smooth performance on mid-range devices.
+
+
+
+Deploy securely on Replit with a custom domain and HTTPS.
+
+
+
+Test for cross-browser (Chrome, Firefox, Safari) and cross-device compatibility.
+
+Deliverables:
+
+
+
+
+
+A fully functional 3D X-ray interfacer for Bendigo’s underground works.
+
+
+
+Integrated historical gold maps with interactive annotations.
+
+
+
+A user-friendly, educational web app with VR/AR potential.
+
+Constraints:
+
+
+
+
+
+Use Replit’s tech stack (JavaScript, React, Three.js, Node.js).
+
+
+
+Ensure historical accuracy where data is available.
+
+
+
+Adhere to web performance standards for 3D rendering.
+
+
+
+Securely handle any external data sources.
+
+Notes:
+
+
+
+
+
+If historical gold maps are unavailable, generate plausible placeholders with clear disclaimers.
+
+
+
+Provide a data import guide for future updates (e.g., new maps or geological data).
+
+
+
+Test for usability with non-technical users (e.g., historians, students).

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bendigo 3D Explorer</title>
+    <style>
+        body { 
+            margin: 0; 
+            background: #2c3e50; 
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <h3>Bendigo 3D Explorer</h3>
+        <div id="status">Initializing...</div>
+        <div id="fps">FPS: 0</div>
+        <button onclick="resetView()">Reset View</button>
+        <button onclick="toggleWireframe()">Wireframe</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        console.log('=== BENDIGO EXPLORER START ===');
+        
+        let scene, camera, renderer, controls, terrain;
+        let frameCount = 0, lastTime = Date.now();
+        
+        function init() {
+            console.log('Initializing 3D scene...');
+            
+            // Basic Three.js setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(100, 80, 100);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            
+            // Lighting
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(50, 50, 50);
+            scene.add(light);
+            
+            // Create working terrain
+            createWorkingTerrain();
+            
+            // Controls
+            if (typeof THREE.OrbitControls !== 'undefined') {
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.target.set(0, 10, 0);
+                controls.update();
+            }
+            
+            // Animation
+            animate();
+            document.getElementById('status').textContent = 'Ready';
+        }
+        
+        function createWorkingTerrain() {
+            console.log('Creating point-cloud terrain...');
+            
+            // Method: Individual spheres/cylinders to avoid any plane geometry issues
+            const group = new THREE.Group();
+            
+            // Create terrain using scattered points instead of grid
+            for (let i = 0; i < 200; i++) {
+                const x = (Math.random() - 0.5) * 120;
+                const z = (Math.random() - 0.5) * 120;
+                
+                // Calculate height for this point
+                let height = 2;
+                height += 15 * Math.exp(-((x)**2 + (z)**2) / 600);
+                height += 10 * Math.exp(-((x+30)**2 + (z+20)**2) / 400);
+                height += 8 * Math.exp(-((x-25)**2 + (z-30)**2) / 300);
+                
+                // Create box instead of cylinder to avoid any rotation issues
+                const geometry = new THREE.BoxGeometry(6, height, 6);
+                const material = new THREE.MeshLambertMaterial({
+                    color: height > 20 ? 0x8B4513 : height > 10 ? 0x654321 : 0x3E2723
+                });
+                
+                const box = new THREE.Mesh(geometry, material);
+                box.position.set(x, height / 2, z);
+                group.add(box);
+            }
+            
+            // Add a solid ground using BoxGeometry to avoid plane issues
+            const groundGeometry = new THREE.BoxGeometry(200, 2, 200);
+            const groundMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x2E7D32
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.position.y = -3;
+            scene.add(ground);
+            
+            terrain = group;
+            scene.add(terrain);
+            
+            // Add distinct mining structures
+            const miningPositions = [
+                { x: -20, z: 15, name: "Central Deborah" },
+                { x: 30, z: -10, name: "Fortuna Villa" },
+                { x: -5, z: -25, name: "Red White Blue" }
+            ];
+            
+            miningPositions.forEach((site, i) => {
+                // Mining headframe
+                const frameGeometry = new THREE.BoxGeometry(4, 20, 4);
+                const frameMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+                frame.position.set(site.x, 10, site.z);
+                scene.add(frame);
+                
+                // Mining marker
+                const markerGeometry = new THREE.SphereGeometry(2.5);
+                const markerMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0xFFD700,
+                    emissive: 0x664400,
+                    emissiveIntensity: 0.3
+                });
+                const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+                marker.position.set(site.x, 22, site.z);
+                scene.add(marker);
+            });
+            
+            console.log('Point-cloud terrain with', group.children.length, 'elements created');
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            frameCount++;
+            if (Date.now() - lastTime >= 1000) {
+                document.getElementById('fps').textContent = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastTime = Date.now();
+            }
+            
+            if (controls) controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        function resetView() {
+            camera.position.set(100, 80, 100);
+            camera.lookAt(0, 10, 0);
+            if (controls) {
+                controls.target.set(0, 10, 0);
+                controls.update();
+            }
+        }
+        
+        function toggleWireframe() {
+            if (terrain && terrain.children) {
+                terrain.children.forEach(child => {
+                    if (child.material) {
+                        child.material.wireframe = !child.material.wireframe;
+                    }
+                });
+            }
+        }
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Start
+        window.addEventListener('load', init);
+        console.log('Script ready');
+    </script>
+</body>
+</html>

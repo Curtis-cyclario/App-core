@@ -1,0 +1,42 @@
+
+import React from 'react';
+
+const BendigoMapPlaceholder = () => {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4">
+      <div className="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-2xl transform transition-all duration-500 hover:scale-105 text-center max-w-md w-full">
+        <h1 className="text-4xl font-extrabold text-indigo-700 dark:text-indigo-300 mb-4 animate-fade-in-down">
+          Bendigo Interactive Map Placeholder
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 animate-fade-in-up">
+          Map functionality coming soon. This component tests basic React rendering.
+        </p>
+        <div className="relative w-24 h-24 mx-auto mb-4">
+          <div className="absolute inset-0 border-4 border-dashed border-indigo-300 dark:border-indigo-500 rounded-full animate-spin-slow"></div>
+          <div className="absolute inset-4 bg-indigo-500 dark:bg-indigo-600 rounded-full flex items-center justify-center">
+            <svg
+              className="w-10 h-10 text-white animate-pulse"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9.75 17L9.75 12L14.25 12L14.25 17L9.75 17ZM12 4V12V4ZM12 17V20V17ZM20 12H12H20ZM4 12H12H4Z"
+              />
+            </svg>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          We appreciate your patience as we develop exciting new features.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default BendigoMapPlaceholder;
+

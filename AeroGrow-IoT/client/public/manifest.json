@@ -1,0 +1,60 @@
+{
+  "name": "VertiGrow IoT Control",
+  "short_name": "VertiGrow",
+  "description": "Advanced IoT monitoring and control dashboard for vertical farming systems",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4caf50",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/",
+      "description": "View your system overview",
+      "icons": [
+        {
+          "src": "/assets/icons/shortcut-dashboard.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Monitoring",
+      "url": "/monitoring",
+      "description": "Check system metrics and sensors",
+      "icons": [
+        {
+          "src": "/assets/icons/shortcut-monitoring.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.vertigrow.app",
+      "id": "com.vertigrow.app"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/vertigrow/id123456789"
+    }
+  ],
+  "prefer_related_applications": true,
+  "categories": ["productivity", "agriculture", "utilities"]
+}

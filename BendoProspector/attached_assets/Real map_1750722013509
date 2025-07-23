@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map of Bendigo</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            padding: 15px;
+            background-color: #34495e;
+            color: white;
+            margin: 0;
+        }
+        #map {
+            flex-grow: 1;
+            height: 80vh; /* Set a specific height for the map */
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive Map of Bendigo</h1>
+    <div id="map"></div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([-36.7589, 144.2782], 14); // Centered on Bendigo, zoom level 14
+
+        // Add an OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Define Points of Interest
+        const pointsOfInterest = [
+            { id: 1, name: 'Red White & Blue Extended Shaft', position: [-36.7606, 144.2831] },
+            { id: 2, name: 'Casley\'s Red White & Blue Syncline', position: [-36.7645, 144.2878] },
+            { id: 3, name: 'Dead Cat Gully', position: [-36.7734, 144.3012] },
+            { id: 4, name: 'Coyle & Boyles Shaft', position: [-36.7702, 144.2958] },
+            { id: 5, name: 'Great Southern Garden Gully', position: [-36.7681, 144.2849] }
+        ];
+
+        // Add markers for each Point of Interest
+        pointsOfInterest.forEach(point => {
+            L.marker(point.position)
+                .addTo(map)
+                .bindPopup(point.name); // Bind a popup with the point's name
+        });
+    </script>
+</body>
+</html>
+

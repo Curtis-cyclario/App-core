@@ -1,0 +1,306 @@
+<!-- static/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bendigo Terrain Viewer</title>
+  <style>
+    body { 
+      margin: 0; 
+      overflow: hidden; 
+      background: #101014; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    canvas { display: block; }
+    
+    /* Menu System */
+    .menu-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 35px;
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      border-bottom: 1px solid #444;
+      display: flex;
+      align-items: center;
+      z-index: 2000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    
+    .menu-item {
+      padding: 8px 16px;
+      color: #ecf0f1;
+      cursor: pointer;
+      position: relative;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .menu-item:hover {
+      background: rgba(52, 152, 219, 0.2);
+      color: #3498db;
+    }
+    
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #34495e;
+      border: 1px solid #555;
+      border-radius: 4px;
+      min-width: 200px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      display: none;
+      z-index: 3000;
+    }
+    
+    .dropdown.active {
+      display: block;
+    }
+    
+    .dropdown-item {
+      padding: 10px 16px;
+      color: #ecf0f1;
+      cursor: pointer;
+      border-bottom: 1px solid #444;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+    
+    .dropdown-item:hover {
+      background: #3498db;
+      color: #fff;
+    }
+    
+    .dropdown-item.disabled {
+      color: #7f8c8d;
+      cursor: not-allowed;
+    }
+    
+    .dropdown-item.disabled:hover {
+      background: transparent;
+      color: #7f8c8d;
+    }
+    
+    .shortcut {
+      color: #95a5a6;
+      font-size: 11px;
+    }
+    
+    .divider {
+      height: 1px;
+      background: #555;
+      margin: 4px 0;
+    }
+    
+    /* Status Bar */
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 25px;
+      background: #2c3e50;
+      border-top: 1px solid #444;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      z-index: 2000;
+      font-size: 11px;
+      color: #ecf0f1;
+    }
+    
+    .status-left, .status-right {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-family: Arial, sans-serif;
+      z-index: 1000;
+      text-align: center;
+    }
+    
+    /* Toolbar */
+    .toolbar {
+      position: fixed;
+      top: 35px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: #34495e;
+      border-bottom: 1px solid #555;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 5px;
+      z-index: 1900;
+    }
+    
+    .tool-button {
+      width: 32px;
+      height: 32px;
+      background: #2c3e50;
+      border: 1px solid #555;
+      border-radius: 3px;
+      color: #ecf0f1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    
+    .tool-button:hover {
+      background: #3498db;
+      border-color: #2980b9;
+    }
+    
+    .tool-button.active {
+      background: #e74c3c;
+      border-color: #c0392b;
+    }
+    
+    .viewport {
+      position: fixed;
+      top: 75px;
+      left: 0;
+      right: 0;
+      bottom: 25px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Menu Bar -->
+  <div class="menu-bar">
+    <div class="menu-item" data-menu="file">
+      File
+      <div class="dropdown" id="file-menu">
+        <div class="dropdown-item" data-action="new"><span>New Terrain</span><span class="shortcut">Ctrl+N</span></div>
+        <div class="dropdown-item" data-action="open"><span>Open Project</span><span class="shortcut">Ctrl+O</span></div>
+        <div class="dropdown-item" data-action="save"><span>Save Terrain</span><span class="shortcut">Ctrl+S</span></div>
+        <div class="dropdown-item" data-action="saveas"><span>Save As...</span><span class="shortcut">Ctrl+Shift+S</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="import"><span>Import DXF</span></div>
+        <div class="dropdown-item" data-action="export"><span>Export STL</span></div>
+        <div class="dropdown-item" data-action="export-obj"><span>Export OBJ</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="print"><span>Print View</span><span class="shortcut">Ctrl+P</span></div>
+        <div class="dropdown-item" data-action="screenshot"><span>Screenshot</span><span class="shortcut">F12</span></div>
+      </div>
+    </div>
+    
+    <div class="menu-item" data-menu="edit">
+      Edit
+      <div class="dropdown" id="edit-menu">
+        <div class="dropdown-item" data-action="undo"><span>Undo</span><span class="shortcut">Ctrl+Z</span></div>
+        <div class="dropdown-item" data-action="redo"><span>Redo</span><span class="shortcut">Ctrl+Y</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="copy"><span>Copy View</span><span class="shortcut">Ctrl+C</span></div>
+        <div class="dropdown-item" data-action="paste"><span>Paste</span><span class="shortcut">Ctrl+V</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="select-all"><span>Select All</span><span class="shortcut">Ctrl+A</span></div>
+        <div class="dropdown-item" data-action="clear"><span>Clear Scene</span><span class="shortcut">Del</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="preferences"><span>Preferences</span><span class="shortcut">Ctrl+,</span></div>
+      </div>
+    </div>
+    
+    <div class="menu-item" data-menu="view">
+      View
+      <div class="dropdown" id="view-menu">
+        <div class="dropdown-item" data-action="reset-camera"><span>Reset Camera</span><span class="shortcut">Home</span></div>
+        <div class="dropdown-item" data-action="top-view"><span>Top View</span><span class="shortcut">7</span></div>
+        <div class="dropdown-item" data-action="front-view"><span>Front View</span><span class="shortcut">1</span></div>
+        <div class="dropdown-item" data-action="side-view"><span>Side View</span><span class="shortcut">3</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="wireframe"><span>Wireframe</span><span class="shortcut">Z</span></div>
+        <div class="dropdown-item" data-action="solid"><span>Solid</span><span class="shortcut">X</span></div>
+        <div class="dropdown-item" data-action="xray"><span>X-Ray Mode</span><span class="shortcut">Alt+Z</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="grid"><span>Toggle Grid</span><span class="shortcut">G</span></div>
+        <div class="dropdown-item" data-action="axes"><span>Show Axes</span><span class="shortcut">Ctrl+G</span></div>
+        <div class="dropdown-item" data-action="stats"><span>Show Statistics</span><span class="shortcut">F3</span></div>
+      </div>
+    </div>
+    
+    <div class="menu-item" data-menu="tools">
+      Tools
+      <div class="dropdown" id="tools-menu">
+        <div class="dropdown-item" data-action="measure"><span>Measure Distance</span><span class="shortcut">M</span></div>
+        <div class="dropdown-item" data-action="cross-section"><span>Cross Section</span><span class="shortcut">C</span></div>
+        <div class="dropdown-item" data-action="elevation"><span>Elevation Profile</span><span class="shortcut">E</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="mining-analysis"><span>Mining Analysis</span></div>
+        <div class="dropdown-item" data-action="geological-layers"><span>Geological Layers</span></div>
+        <div class="dropdown-item" data-action="drill-holes"><span>Drill Holes</span></div>
+        <div class="divider"></div>
+        <div class="dropdown-item" data-action="render-settings"><span>Render Settings</span></div>
+        <div class="dropdown-item" data-action="performance"><span>Performance Monitor</span></div>
+      </div>
+    </div>
+    
+    <div class="menu-item" data-menu="help">
+      Help
+      <div class="dropdown" id="help-menu">
+        <div class="dropdown-item" data-action="about"><span>About Bendigo Explorer</span></div>
+        <div class="dropdown-item" data-action="shortcuts"><span>Keyboard Shortcuts</span><span class="shortcut">F1</span></div>
+        <div class="dropdown-item" data-action="documentation"><span>Documentation</span></div>
+        <div class="dropdown-item" data-action="support"><span>Support</span></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="tool-button" data-tool="select" title="Select Tool">⚡</div>
+    <div class="tool-button" data-tool="pan" title="Pan Tool">✋</div>
+    <div class="tool-button" data-tool="rotate" title="Rotate Tool">🔄</div>
+    <div class="tool-button" data-tool="zoom" title="Zoom Tool">🔍</div>
+    <div style="width: 1px; height: 20px; background: #555; margin: 0 5px;"></div>
+    <div class="tool-button" data-tool="measure" title="Measure Distance">📏</div>
+    <div class="tool-button" data-tool="cross-section" title="Cross Section">✂️</div>
+    <div class="tool-button" data-tool="elevation" title="Elevation Profile">📊</div>
+    <div style="width: 1px; height: 20px; background: #555; margin: 0 5px;"></div>
+    <div class="tool-button" data-tool="wireframe" title="Wireframe Mode">🔲</div>
+    <div class="tool-button" data-tool="xray" title="X-Ray Mode">👁️</div>
+  </div>
+  
+  <!-- Viewport -->
+  <div class="viewport">
+    <div class="loading" id="loading">Loading Bendigo Terrain...</div>
+  </div>
+  
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <span id="status-message">Ready</span>
+      <span id="coordinates">X: 0.0 Y: 0.0 Z: 0.0</span>
+    </div>
+    <div class="status-right">
+      <span id="camera-info">Camera: Perspective</span>
+      <span id="fps-counter">FPS: --</span>
+      <span id="poly-count">Polygons: --</span>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.145.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.145.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="./js/menu-system.js"></script>
+  <script src="./js/terrain.js"></script>
+</body>
+</html>

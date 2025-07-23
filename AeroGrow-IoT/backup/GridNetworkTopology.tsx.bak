@@ -1,0 +1,963 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { 
+  Card, 
+  CardContent
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  RefreshCw, 
+  AlertTriangle,
+  Database,
+  Grid,
+  Plus,
+  Minus,
+  Maximize2,
+  Info,
+  Building2,
+  Signal,
+  Cpu,
+  Droplet,
+  Lightbulb,
+  Server,
+  Move
+} from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
+
+// Simplified API client for this component
+async function fetchFromApi<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+  
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status}`);
+  }
+  
+  return response.json() as Promise<T>;
+}
+
+// Define types for the network data
+interface NetworkNodeData {
+  id: string;
+  type: string;
+  name: string;
+  status: string;
+  x: number;
+  y: number;
+  plantType?: string;
+  growthStage?: number;
+  health?: number;
+  value?: string;
+  color?: string;
+}
+
+interface NetworkConnectionData {
+  source: string;
+  target: string;
+  status: string;
+  isCentral?: boolean;
+}
+
+interface NetworkData {
+  nodes: NetworkNodeData[];
+  connections: NetworkConnectionData[];
+}
+
+interface GridNetworkTopologyProps {
+  networkData?: NetworkData | null;
+  layoutMode?: 'grid' | 'standard';
+  editMode?: boolean;
+  towers?: any[];
+  devices?: any[];
+}
+
+const GRID_CELL_SIZE = 80; // Size of each grid cell
+const GRID_COLUMNS = 12;   // Number of columns in the grid
+const GRID_ROWS = 8;       // Number of rows in the grid
+
+// Grid-based Network Topology Component
+const GridNetworkTopology: React.FC<GridNetworkTopologyProps> = ({
+  networkData: externalNetworkData,
+  layoutMode = 'grid',
+  editMode = false,
+  towers = [],
+  devices = []
+}) => {
+  // Data and loading states
+  const [networkData, setNetworkData] = useState<NetworkData | null>(null);
+  const [gridData, setGridData] = useState<(NetworkNodeData | null)[][]>([]);
+  const [connectionPaths, setConnectionPaths] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [zoom, setZoom] = useState<number>(1);
+  const [translate, setTranslate] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+  const [lastPanPosition, setLastPanPosition] = useState<{ x: number, y: number } | null>(null);
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const graphContainerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+  
+  // Handle mouse events for pan
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0) { // Left mouse button
+      setIsPanning(true);
+      setLastPanPosition({ x: e.clientX, y: e.clientY });
+    }
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isPanning && lastPanPosition) {
+      const deltaX = e.clientX - lastPanPosition.x;
+      const deltaY = e.clientY - lastPanPosition.y;
+      
+      setTranslate(prev => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+      
+      setLastPanPosition({ x: e.clientX, y: e.clientY });
+    }
+  }, [isPanning, lastPanPosition]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+    setLastPanPosition(null);
+  }, []);
+  
+  // Handle zoom with mouse wheel
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1; // Zoom in or out
+    
+    setZoom(prev => {
+      const newZoom = prev * zoomFactor;
+      return Math.min(Math.max(newZoom, 0.5), 3); // Limit zoom between 0.5 and 3
+    });
+  }, []);
+  
+  // Touch events for mobile interactions
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsPanning(true);
+      setLastPanPosition({ 
+        x: e.touches[0].clientX, 
+        y: e.touches[0].clientY 
+      });
+    }
+  }, []);
+  
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent scrolling
+    
+    // Handle pinch-zoom with two touches
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      
+      // Calculate distance between touches
+      const distance = Math.hypot(
+        touch1.clientX - touch2.clientX,
+        touch1.clientY - touch2.clientY
+      );
+      
+      if (!lastPanPosition) {
+        // Store initial distance for reference
+        setLastPanPosition({ x: distance, y: 0 });
+        return;
+      }
+      
+      // Calculate zoom factor based on change in distance
+      const zoomFactor = distance / lastPanPosition.x;
+      
+      if (zoomFactor > 0.01) { // Prevent division by zero issues
+        setZoom(prev => {
+          const newZoom = prev * (zoomFactor > 1 ? 1.02 : 0.98);
+          return Math.min(Math.max(newZoom, 0.5), 3); // Limit zoom
+        });
+        
+        setLastPanPosition({ x: distance, y: 0 });
+      }
+    } 
+    // Handle pan with one touch
+    else if (e.touches.length === 1 && isPanning && lastPanPosition) {
+      const deltaX = e.touches[0].clientX - lastPanPosition.x;
+      const deltaY = e.touches[0].clientY - lastPanPosition.y;
+      
+      setTranslate(prev => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+      
+      setLastPanPosition({
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      });
+    }
+  }, [isPanning, lastPanPosition]);
+  
+  const handleTouchEnd = useCallback(() => {
+    setIsPanning(false);
+    setLastPanPosition(null);
+  }, []);
+  
+  // Double tap to reset view
+  const lastTapTimeRef = useRef<number>(0);
+  
+  const handleDoubleTap = useCallback((e: React.TouchEvent) => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTimeRef.current;
+    
+    if (timeSinceLastTap < 300) { // 300ms threshold for double tap
+      // Reset zoom and pan on double tap
+      setZoom(1);
+      setTranslate({ x: 0, y: 0 });
+      lastTapTimeRef.current = 0; // Reset to prevent triple-tap
+    } else {
+      lastTapTimeRef.current = now;
+    }
+  }, []);
+  
+  // Custom colors for different node types
+  const nodeColors = {
+    hub: '#10B981',     // Green
+    tower: '#2DD4BF',   // Teal
+    sensor: '#3B82F6',  // Blue
+    controller: '#7C3AED', // Purple
+    pump: '#8B5CF6',    // Indigo
+    light: '#F59E0B',   // Amber
+    reservoir: '#38BDF8', // Light blue
+    server: '#EC4899',  // Pink
+    default: '#6B7280'  // Gray
+  };
+  
+  // Fetch network data on component mount
+  useEffect(() => {
+    fetchNetworkData();
+  }, []);
+  
+  // Update grid layout when network data changes
+  useEffect(() => {
+    if (networkData) {
+      organizeNodesInGrid();
+    }
+  }, [networkData, layoutMode]);
+  
+  // Fetch network data if external data is not provided
+  const fetchNetworkData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      if (externalNetworkData) {
+        setNetworkData(externalNetworkData);
+      } else {
+        const data = await fetchFromApi<NetworkData>('/api/network');
+        setNetworkData(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch network data:', err);
+      setError('Failed to load network topology. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Organize nodes in a horizontal tree layout
+  const organizeNodesInGrid = () => {
+    if (!networkData) return;
+    
+    // Initialize empty grid
+    const grid: (NetworkNodeData | null)[][] = Array(GRID_ROWS).fill(null)
+      .map(() => Array(GRID_COLUMNS).fill(null));
+    
+    // Group nodes by type
+    const nodesByType: Record<string, NetworkNodeData[]> = {};
+    
+    // Count node types for planning the layout
+    const typeCounts: Record<string, number> = {};
+    
+    networkData.nodes.forEach(node => {
+      if (!nodesByType[node.type]) {
+        nodesByType[node.type] = [];
+        typeCounts[node.type] = 0;
+      }
+      nodesByType[node.type].push(node);
+      typeCounts[node.type]++;
+    });
+    
+    // Horizontal tree layout (left to right)
+    // Column 0-1: Master hub/controller (leftmost)
+    // Column 2-4: Secondary hubs/controllers
+    // Column 5-8: Towers arranged by groups
+    // Column 9-11: Sensors and other endpoints
+    
+    // Start with the master controller in column 0
+    let masterPlaced = false;
+    if (nodesByType.controller) {
+      const masterController = nodesByType.controller.find(n => n.name.toLowerCase().includes('master'));
+      if (masterController) {
+        grid[3][0] = masterController;
+        masterPlaced = true;
+        // Remove this node from the list
+        nodesByType.controller = nodesByType.controller.filter(n => n.id !== masterController.id);
+      }
+    }
+    
+    // If no specific master controller, place the first hub or controller
+    if (!masterPlaced) {
+      if (nodesByType.hub && nodesByType.hub.length > 0) {
+        grid[3][0] = nodesByType.hub[0];
+        nodesByType.hub.shift();
+      } else if (nodesByType.controller && nodesByType.controller.length > 0) {
+        grid[3][0] = nodesByType.controller[0];
+        nodesByType.controller.shift();
+      }
+    }
+    
+    // Place hub nodes in the second column (column 2)
+    if (nodesByType.hub) {
+      const hubCount = nodesByType.hub.length;
+      const centerRow = Math.floor(GRID_ROWS / 2);
+      const startRow = Math.max(0, centerRow - Math.floor(hubCount / 2));
+      
+      nodesByType.hub.forEach((node, i) => {
+        const row = startRow + i;
+        if (row < GRID_ROWS) {
+          grid[row][2] = node;
+        }
+      });
+    }
+    
+    // Place controllers in column 3
+    if (nodesByType.controller) {
+      const controllerCount = nodesByType.controller.length;
+      const centerRow = Math.floor(GRID_ROWS / 2);
+      const startRow = Math.max(0, centerRow - Math.floor(controllerCount / 2));
+      
+      nodesByType.controller.forEach((node, i) => {
+        const row = startRow + i;
+        if (row < GRID_ROWS) {
+          grid[row][3] = node;
+        }
+      });
+    }
+    
+    // Place towers in columns 5-8, group by type if possible
+    if (nodesByType.tower) {
+      // Group towers (water towers, plant towers, etc.)
+      const towerGroups: Record<string, NetworkNodeData[]> = {};
+      
+      nodesByType.tower.forEach(tower => {
+        let groupKey = 'default';
+        if (tower.name.toLowerCase().includes('water')) {
+          groupKey = 'water';
+        } else if (tower.name.toLowerCase().includes('plant')) {
+          groupKey = 'plant';
+        } else if (tower.name.toLowerCase().includes('nutrient')) {
+          groupKey = 'nutrient';
+        }
+        
+        if (!towerGroups[groupKey]) {
+          towerGroups[groupKey] = [];
+        }
+        towerGroups[groupKey].push(tower);
+      });
+      
+      // Place each tower group in a column
+      Object.entries(towerGroups).forEach(([groupKey, towers], groupIndex) => {
+        const col = 5 + groupIndex;
+        if (col <= 8) {
+          const towersInGroup = towers.length;
+          const centerRow = Math.floor(GRID_ROWS / 2);
+          const startRow = Math.max(0, centerRow - Math.floor(towersInGroup / 2));
+          
+          towers.forEach((tower, i) => {
+            const row = startRow + i;
+            if (row < GRID_ROWS) {
+              grid[row][col] = tower;
+            }
+          });
+        }
+      });
+    }
+    
+    // Place sensors in columns 9-11
+    if (nodesByType.sensor) {
+      // Group sensors by what they monitor
+      const sensorGroups: Record<string, NetworkNodeData[]> = {};
+      
+      nodesByType.sensor.forEach(sensor => {
+        let groupKey = 'other';
+        if (sensor.name.toLowerCase().includes('temp')) {
+          groupKey = 'temperature';
+        } else if (sensor.name.toLowerCase().includes('humid')) {
+          groupKey = 'humidity';
+        } else if (sensor.name.toLowerCase().includes('water') || sensor.name.toLowerCase().includes('level')) {
+          groupKey = 'water';
+        }
+        
+        if (!sensorGroups[groupKey]) {
+          sensorGroups[groupKey] = [];
+        }
+        sensorGroups[groupKey].push(sensor);
+      });
+      
+      // Place sensor groups
+      Object.entries(sensorGroups).forEach(([groupKey, sensors], groupIndex) => {
+        const col = 9 + (groupIndex % 3);
+        if (col <= 11) {
+          const sensorsInGroup = sensors.length;
+          const startRow = Math.floor((GRID_ROWS - sensorsInGroup) / 2);
+          
+          sensors.forEach((sensor, i) => {
+            const row = startRow + i;
+            if (row < GRID_ROWS && row >= 0) {
+              grid[row][col] = sensor;
+            }
+          });
+        }
+      });
+    }
+    
+    // Place remaining nodes in available cells
+    const remainingTypes = Object.keys(nodesByType).filter(type => 
+      !['hub', 'tower', 'sensor', 'controller'].includes(type)
+    );
+    
+    // Place each type in a specific column area if possible
+    remainingTypes.forEach((type, typeIndex) => {
+      // Target columns based on node type
+      let targetCol = 10;
+      
+      if (type === 'pump') targetCol = 6;
+      else if (type === 'light') targetCol = 7;
+      else if (type === 'reservoir') targetCol = 4;
+      
+      nodesByType[type].forEach((node, i) => {
+        // Try to place in ideal position
+        let idealRow = Math.floor(GRID_ROWS / 2) + (i % 5) - 2;
+        idealRow = Math.max(0, Math.min(idealRow, GRID_ROWS - 1));
+        
+        // If ideal position is taken, find closest available spot
+        if (grid[idealRow][targetCol] === null) {
+          grid[idealRow][targetCol] = node;
+        } else {
+          // Find any available cell
+          let placed = false;
+          
+          // Try current column first
+          for (let r = 0; r < GRID_ROWS && !placed; r++) {
+            if (grid[r][targetCol] === null) {
+              grid[r][targetCol] = node;
+              placed = true;
+            }
+          }
+          
+          // Then try adjacent columns
+          if (!placed) {
+            for (let c = targetCol - 1; c <= targetCol + 1 && !placed; c++) {
+              if (c >= 0 && c < GRID_COLUMNS) {
+                for (let r = 0; r < GRID_ROWS && !placed; r++) {
+                  if (grid[r][c] === null) {
+                    grid[r][c] = node;
+                    placed = true;
+                  }
+                }
+              }
+            }
+          }
+          
+          // Finally, place anywhere if still not placed
+          if (!placed) {
+            for (let r = 0; r < GRID_ROWS && !placed; r++) {
+              for (let c = 0; c < GRID_COLUMNS && !placed; c++) {
+                if (grid[r][c] === null) {
+                  grid[r][c] = node;
+                  placed = true;
+                }
+              }
+            }
+          }
+        }
+      });
+    });
+    
+    setGridData(grid);
+    
+    // Calculate connection paths
+    calculateConnectionPaths(grid);
+  };
+  
+  // Calculate paths for connections with improved horizontal tree layout
+  const calculateConnectionPaths = (grid: (NetworkNodeData | null)[][]) => {
+    if (!networkData) return;
+    
+    const paths: any[] = [];
+    
+    // Find grid positions for each node
+    const nodePositions: Record<string, { row: number, col: number }> = {};
+    
+    grid.forEach((row, rowIndex) => {
+      row.forEach((node, colIndex) => {
+        if (node) {
+          nodePositions[node.id] = { row: rowIndex, col: colIndex };
+        }
+      });
+    });
+    
+    // Sort connections for more logical flow
+    const sortedConnections = [...networkData.connections].sort((a, b) => {
+      // Central connections first
+      if ((a.isCentral === true) && !b.isCentral) return -1;
+      if (!a.isCentral && (b.isCentral === true)) return 1;
+      
+      // Then prioritize core infrastructure connections (left to right)
+      const sourceA = nodePositions[a.source]?.col || 0;
+      const sourceB = nodePositions[b.source]?.col || 0;
+      const targetA = nodePositions[a.target]?.col || 0;
+      const targetB = nodePositions[b.target]?.col || 0;
+      
+      // Horizontal flows (left to right) take precedence
+      const aIsLeftToRight = sourceA < targetA;
+      const bIsLeftToRight = sourceB < targetB;
+      
+      if (aIsLeftToRight && !bIsLeftToRight) return -1;
+      if (!aIsLeftToRight && bIsLeftToRight) return 1;
+      
+      // Then active connections
+      if (a.status === 'active' && b.status !== 'active') return -1;
+      if (a.status !== 'active' && b.status === 'active') return 1;
+      
+      return 0;
+    });
+    
+    // Create paths for connections
+    sortedConnections.forEach((connection) => {
+      const sourcePos = nodePositions[connection.source];
+      const targetPos = nodePositions[connection.target];
+      
+      if (sourcePos && targetPos) {
+        // Calculate center of source cell
+        const sourceX = sourcePos.col * GRID_CELL_SIZE + GRID_CELL_SIZE / 2;
+        const sourceY = sourcePos.row * GRID_CELL_SIZE + GRID_CELL_SIZE / 2;
+        
+        // Calculate center of target cell
+        const targetX = targetPos.col * GRID_CELL_SIZE + GRID_CELL_SIZE / 2;
+        const targetY = targetPos.row * GRID_CELL_SIZE + GRID_CELL_SIZE / 2;
+        
+        // Determine path type and create corresponding path
+        const isStraightLine = 
+          sourcePos.row === targetPos.row || 
+          sourcePos.col === targetPos.col;
+        
+        const isLeftToRight = sourcePos.col < targetPos.col;
+        const isRightToLeft = sourcePos.col > targetPos.col;
+        const isHorizontal = sourcePos.row === targetPos.row;
+        const isVertical = sourcePos.col === targetPos.col;
+        
+        // Advanced path data
+        const path = {
+          sourceX,
+          sourceY,
+          targetX,
+          targetY,
+          isStraightLine,
+          isCentral: connection.isCentral === true,
+          status: connection.status,
+          sourceId: connection.source,
+          targetId: connection.target,
+          
+          // Additional metadata for enhanced rendering
+          isLeftToRight,
+          isRightToLeft,
+          isHorizontal,
+          isVertical,
+          
+          // Flow data for animated lines
+          flowDirection: isLeftToRight ? 'right' : 
+                       isRightToLeft ? 'left' : 
+                       sourcePos.row < targetPos.row ? 'down' : 'up',
+                       
+          // Calculate angle for oriented arrows/indicators
+          angle: Math.atan2(
+            (targetPos.row - sourcePos.row), 
+            (targetPos.col - sourcePos.col)
+          ) * 180 / Math.PI,
+          
+          // Calculate length for animation timing
+          length: Math.sqrt(
+            Math.pow(targetPos.row - sourcePos.row, 2) + 
+            Math.pow(targetPos.col - sourcePos.col, 2)
+          )
+        };
+        
+        paths.push(path);
+      }
+    });
+    
+    setConnectionPaths(paths);
+  };
+  
+  // Get color for node based on type and status
+  const getNodeColor = (node: NetworkNodeData) => {
+    if (node.status === 'error' || node.status === 'offline') {
+      return '#EF4444'; // Red for errors
+    } else if (node.status === 'warning') {
+      return '#F59E0B'; // Amber for warnings
+    }
+    
+    // Use type-based color
+    return nodeColors[node.type as keyof typeof nodeColors] || nodeColors.default;
+  };
+  
+  // Get icon for node based on type
+  const getNodeIcon = (type: string) => {
+    switch (type) {
+      case 'hub': return <Database className="h-5 w-5" />;
+      case 'tower': return <Building2 className="h-5 w-5" />;
+      case 'sensor': return <Signal className="h-5 w-5" />;
+      case 'controller': return <Cpu className="h-5 w-5" />;
+      case 'pump': return <Droplet className="h-5 w-5" />;
+      case 'light': return <Lightbulb className="h-5 w-5" />;
+      case 'server': return <Server className="h-5 w-5" />;
+      default: return <Info className="h-5 w-5" />;
+    }
+  };
+  
+  // Handle zoom controls
+  const handleZoom = (direction: 'in' | 'out' | 'reset') => {
+    if (direction === 'in') {
+      setZoom(prev => Math.min(prev + 0.1, 1.5));
+    } else if (direction === 'out') {
+      setZoom(prev => Math.max(prev - 0.1, 0.5));
+    } else {
+      setZoom(1);
+    }
+  };
+  
+  return (
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Grid Network Topology</h3>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleZoom('out')}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleZoom('reset')}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleZoom('in')}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fetchNetworkData}
+            disabled={loading}
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      <Card className="shadow-lg border border-gray-100 dark:border-gray-800">
+        <CardContent className="p-4 bg-gradient-to-b from-transparent to-gray-50/50 dark:to-gray-900/30">
+          <div 
+            className="h-[500px] relative overflow-auto rounded-md border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900"
+            ref={containerRef}
+          >
+            {loading ? (
+              <div className="h-full flex items-center justify-center">
+                <RefreshCw className="h-6 w-6 text-gray-400 dark:text-gray-500 animate-spin mr-2" />
+                <p className="text-gray-400 dark:text-gray-500">Loading network data...</p>
+              </div>
+            ) : error ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Failed to load network data</h3>
+                <p className="text-gray-500 dark:text-gray-400 max-w-md">{error}</p>
+                <Button 
+                  onClick={fetchNetworkData} 
+                  className="mt-4"
+                  variant="outline"
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : !networkData || networkData.nodes.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                <Database className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No network data available</h3>
+                <p className="text-gray-500 dark:text-gray-400 max-w-md">There appears to be no network topology data available at this time.</p>
+              </div>
+            ) : (
+              <div className="network-container overflow-auto relative"
+                style={{ 
+                  height: '80vh',
+                  maxHeight: '800px',
+                  cursor: isPanning ? 'grabbing' : 'grab'
+                }}
+                ref={containerRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onWheel={handleWheel}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                <div 
+                  className="grid-container p-4"
+                  style={{ 
+                    transform: `scale(${zoom}) translate(${translate.x}px, ${translate.y}px)`,
+                    transformOrigin: 'top left',
+                    width: GRID_CELL_SIZE * GRID_COLUMNS,
+                    height: GRID_CELL_SIZE * GRID_ROWS,
+                    position: 'relative'
+                  }}
+                  ref={graphContainerRef}
+                  onTouchStart={handleDoubleTap}
+                >
+                {/* Grid Background */}
+                <div 
+                  className="grid-background absolute inset-0"
+                  style={{
+                    backgroundSize: `${GRID_CELL_SIZE}px ${GRID_CELL_SIZE}px`,
+                    backgroundImage: `
+                      linear-gradient(to right, ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} 1px, transparent 1px),
+                      linear-gradient(to bottom, ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} 1px, transparent 1px)
+                    `,
+                    zIndex: 0
+                  }}
+                />
+                
+                {/* Connection Lines */}
+                <svg 
+                  className="absolute inset-0 z-10" 
+                  width={GRID_CELL_SIZE * GRID_COLUMNS} 
+                  height={GRID_CELL_SIZE * GRID_ROWS}
+                >
+                  {connectionPaths.map((path, index) => {
+                    // Determine line style based on connection status
+                    const strokeColor = path.status === 'offline' 
+                      ? '#EF4444' 
+                      : path.status === 'warning' 
+                        ? '#F59E0B' 
+                        : path.isCentral 
+                          ? (theme === 'dark' ? '#60A5FA' : '#3B82F6') 
+                          : (theme === 'dark' ? '#9CA3AF' : '#6B7280');
+                    
+                    const strokeWidth = path.isCentral ? 2 : 1;
+                    const dashArray = path.status === 'offline' ? "4 2" : undefined;
+                    
+                    // Determine if this connection involves the selected node
+                    const isSelected = selectedNode !== null && 
+                      (path.sourceId === selectedNode || path.targetId === selectedNode);
+                    
+                    // For straight lines
+                    if (path.isStraightLine) {
+                      return (
+                        <line
+                          key={`path-${index}`}
+                          x1={path.sourceX}
+                          y1={path.sourceY}
+                          x2={path.targetX}
+                          y2={path.targetY}
+                          stroke={strokeColor}
+                          strokeWidth={isSelected ? strokeWidth + 1 : strokeWidth}
+                          strokeDasharray={dashArray}
+                          strokeLinecap="round"
+                          className="transition-all duration-300"
+                          opacity={isSelected ? 1 : 0.6}
+                        />
+                      );
+                    } 
+                    
+                    // For curved/angled connections
+                    const midX = (path.sourceX + path.targetX) / 2;
+                    const midY = (path.sourceY + path.targetY) / 2;
+                    
+                    return (
+                      <path
+                        key={`path-${index}`}
+                        d={`M${path.sourceX},${path.sourceY} Q${midX},${midY} ${path.targetX},${path.targetY}`}
+                        fill="none"
+                        stroke={strokeColor}
+                        strokeWidth={isSelected ? strokeWidth + 1 : strokeWidth}
+                        strokeDasharray={dashArray}
+                        strokeLinecap="round"
+                        className="transition-all duration-300"
+                        opacity={isSelected ? 1 : 0.6}
+                      />
+                    );
+                  })}
+                </svg>
+                
+                {/* Grid Cells with Nodes */}
+                <div className="grid-cells z-20 relative">
+                  {gridData.map((row, rowIndex) => (
+                    <div key={`row-${rowIndex}`} className="grid-row" style={{ display: 'flex' }}>
+                      {row.map((node, colIndex) => (
+                        <div 
+                          key={`cell-${rowIndex}-${colIndex}`}
+                          className="grid-cell relative"
+                          style={{
+                            width: GRID_CELL_SIZE,
+                            height: GRID_CELL_SIZE,
+                          }}
+                        >
+                          {node && (
+                            <div 
+                              className={`
+                                absolute inset-2 rounded-md flex flex-col items-center justify-center
+                                cursor-pointer transition-all duration-200
+                                ${selectedNode === node.id 
+                                  ? 'ring-2 ring-blue-500 dark:ring-blue-400 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 z-30' 
+                                  : 'hover:ring-1 hover:ring-blue-400 dark:hover:ring-blue-500 hover:ring-offset-1 hover:ring-offset-white dark:hover:ring-offset-gray-900'}
+                              `}
+                              style={{
+                                backgroundColor: theme === 'dark' 
+                                  ? `${getNodeColor(node)}30` // 30% opacity in dark mode
+                                  : `${getNodeColor(node)}15`, // 15% opacity in light mode
+                                borderColor: getNodeColor(node),
+                                borderWidth: '1px',
+                                // Ring color is applied via className
+                              }}
+                              onClick={() => setSelectedNode(node.id === selectedNode ? null : node.id)}
+                              onMouseEnter={() => setHoveredNode(node.id)}
+                              onMouseLeave={() => setHoveredNode(null)}
+                            >
+                              <div 
+                                className="icon-container mb-1 p-1.5 rounded-full"
+                                style={{ 
+                                  backgroundColor: getNodeColor(node),
+                                  color: 'white'
+                                }}
+                              >
+                                {getNodeIcon(node.type)}
+                              </div>
+                              <div className="text-xs font-medium truncate max-w-full px-1 text-center">
+                                {node.name}
+                              </div>
+                              {node.value && (
+                                <div className="absolute -top-2 -right-2 bg-white dark:bg-gray-800 text-xs font-bold px-1 rounded shadow border border-gray-200 dark:border-gray-700">
+                                  {node.value}
+                                </div>
+                              )}
+                              <div 
+                                className={`
+                                  absolute bottom-0 left-0 right-0 h-1 rounded-b-md
+                                  ${node.status === 'online' ? 'bg-green-500' :
+                                    node.status === 'warning' ? 'bg-amber-500' :
+                                    node.status === 'offline' ? 'bg-red-500' :
+                                    'bg-gray-500'}
+                                `}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Node Details when selected */}
+          {selectedNode && networkData && (
+            <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm">
+              {(() => {
+                const node = networkData.nodes.find(n => n.id === selectedNode);
+                if (!node) return <div>No details available</div>;
+                
+                return (
+                  <div className="flex justify-between">
+                    <div className="flex items-center">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center mr-3"
+                        style={{ backgroundColor: getNodeColor(node) }}
+                      >
+                        {getNodeIcon(node.type)}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium">{node.name}</h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {node.type.charAt(0).toUpperCase() + node.type.slice(1)} • 
+                          ID: {node.id}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Status</div>
+                      <div className={`
+                        text-xs font-medium px-2 py-0.5 rounded-full
+                        ${node.status === 'online' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                          node.status === 'warning' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100' :
+                          node.status === 'offline' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100' :
+                          'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100'}
+                      `}>
+                        {node.status.charAt(0).toUpperCase() + node.status.slice(1)}
+                      </div>
+                    </div>
+                    
+                    {node.value && (
+                      <div className="flex flex-col">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Value</div>
+                        <div className="text-sm font-medium">{node.value}</div>
+                      </div>
+                    )}
+                    
+                    {node.plantType && (
+                      <div className="flex flex-col">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Plant</div>
+                        <div className="text-sm font-medium">{node.plantType}</div>
+                      </div>
+                    )}
+                    
+                    {node.growthStage !== undefined && (
+                      <div className="flex flex-col">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Growth</div>
+                        <div className="text-sm font-medium">{node.growthStage}%</div>
+                      </div>
+                    )}
+                    
+                    {node.health !== undefined && (
+                      <div className="flex flex-col">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Health</div>
+                        <div className="text-sm font-medium">{node.health}%</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default GridNetworkTopology;

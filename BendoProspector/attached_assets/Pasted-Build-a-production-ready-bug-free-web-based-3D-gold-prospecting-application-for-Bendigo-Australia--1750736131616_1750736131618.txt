@@ -1,0 +1,47 @@
+Build a production-ready, bug-free web-based 3D gold prospecting application for Bendigo, Australia, with real satellite imagery, accurate topology rendering, authentic shaft data, and full DXF integration. Deliver a professional user interface with Blender/Photoshop-like functionality for 3D gold data mapping, exploration, and historical recovery of unmarked shafts and spelunking. Ensure Replit produces the final version in one go, resolving all bugs, dependency conflicts, and runtime errors without incremental prompting or circular debugging.
+
+Core Requirements:
+
+3D Visualization: Use Three.js (v0.159.0) with ES modules for immersive real-time 3D rendering of Bendigo’s underground geology, including accurate Ordovician formations, gold veins, and historical mining infrastructure (e.g., Central Deborah’s 17 shafts at 412m depth).
+Real Data Integration:
+Parse bendigo_zone_2011.dxf for 3D geological models with UTM coordinate mapping.
+Load real aircore drilling data (e.g., BGO-001 to BGO-008) with collar positions, traces, and assay results (>1.0 g/t gold highlighted).
+Integrate authentic KML files for GPS coordinates and prospecting survey data.
+Use real satellite imagery (e.g., from a CORS-enabled source) for the top terrain layer, with procedural fallback textures.
+Topology & Shafts: Render accurate Bendigo topography with elevation profiles and historical shaft locations (e.g., Fortuna Villa, Red White & Blue) using Victorian-era survey grids and modern GPS overlays.
+Machine Learning: Implement a TensorFlow.js (v4.17.0) neural network to predict high-potential exploration targets based on geological patterns, drilling density, and historical data, visualizing predictions with confidence-based heat maps.
+UI/UX:
+Professional hamburger menu (File, Edit, View, Modules) with actions for save, export DXF, screenshot, wireframe toggle, fullscreen, and module auto-arrange.
+Modular, draggable UI panels with snap-to-edge alignment (left, right, top, bottom), expand/collapse functionality, and drag handles with golden visual feedback.
+3D depth rod (0 to -400m) integrated into the scene, showing real-time camera depth with a glowing golden pointer and formation context (Surface, Weathered Zone, Bendigo Formation, Deep Basement).
+Prevent data popups during viewport navigation for smooth interaction.
+Features:
+X-ray vision toggle for subsurface structures with transparency and wireframe effects.
+Interactive timeline (1850–2025) with animated progression showing mining development and modern heritage sites.
+Click-to-inspect system for detailed site info (depth, coordinates, assay results).
+Real-time mini-map, particle systems for gold flow, and animated cross-section analysis.
+Heat maps for gold concentration and ground stability.
+Audio feedback for interactions and professional material rendering.
+API Infrastructure: Provide 12+ endpoints for geological, mining, drilling, satellite, environmental, and heritage data with versioning, documentation, and health monitoring. Mock endpoints locally if no backend is available.
+Performance & Stability:
+Resolve all dependency conflicts (e.g., Three.js, React 18, TensorFlow.js).
+Eliminate runtime errors, deprecation warnings, and console logs.
+Ensure smooth rendering on port 5000 with 60 FPS and no crashes.
+Handle resource loading failures (e.g., satellite imagery, DXF) with fallbacks.
+Tech Stack:
+React 18 (use createRoot, not render), Three.js, TensorFlow.js, Tailwind CSS.
+ES modules for all imports, no UMD scripts.
+Host assets (DXF, KML, satellite imagery) locally or via CORS-enabled CDN.
+Deliverables:
+
+Single index.html with embedded JavaScript/CSS or modular file structure.
+Bug-free, production-ready app with all features fully functional.
+No placeholder URLs; use local assets or verifiable public sources.
+Comprehensive error handling for API, resource loading, and user interactions.
+Instructions for Replit:
+
+Scrap any existing code and start fresh with this prompt.
+Auto-resolve all bugs, dependency issues, and runtime errors during development.
+Validate rendering with real Bendigo data and ensure scientific accuracy.
+Test UI modularity, 3D navigation, and ML predictions for usability.
+Output a polished, professional app ready for immediate use in the field.

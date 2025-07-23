@@ -1,0 +1,74 @@
+🛠️ Replit Debugger Prompt — Rollback & Rebuild Terrain Module
+Context:
+Terrain rendering and geological visualization in main.py are currently unstable. Previous bugfix attempts failed to stabilize the animation loop, global var scoping, and Three.js module loading. Despite patches (e.g., OrbitControls fix, geometry handler updates), the app continues to crash or render incorrectly.
+
+✅ Objectives:
+Rollback terrain module to a previously functional state (before terrain edits started).
+
+Rebuild terrain rendering pipeline with:
+
+Stable initialization sequence
+
+Valid Three.js integration (v0.145.0 confirmed working)
+
+Accurate Bendigo geological mesh
+
+Smooth OrbitControls & camera movement
+
+ShadowMapping and performance fallbacks
+
+⚠️ Current Symptoms:
+Terrain fails to render or loads with glitches
+
+OrbitControls throws ES module errors on some builds
+
+main.py has redundant or broken animation loops
+
+Geometry isn't properly bound to the renderer
+
+🧠 Fix Proposal:
+If applicable, implement a clean rollback + modular rebuild strategy:
+
+Restore working snapshot from before terrain edits (18+ hrs ago)
+
+Rebuild terrain generation logic in a dedicated file/module (e.g., terrain.py)
+
+Refactor rendering logic to separate concerns (controls, camera, lighting, animation)
+
+Validate Three.js/CDN version compatibility and error logging
+
+🔍 Next Steps:
+ Confirm last working commit/hash to revert to
+
+ Create terrain.py with clean geometry loader
+
+ Refactor main scene setup (main.py) to modular functions
+
+ Re-test rendering loop with logging enabled
+
+ Commit & tag working terrain version
+
+✨ Bonus:
+Add lightweight geodata overlay or elevation shading using real-world topography for Bendigo region, if terrain pipeline is stabilized.
+
+Would you like me to output a full rewritten main.py scaffold with modularized terrain setup?
+
+Let me know if you want this as a copy/paste file, or if you'd prefer the rollback scaffold + rebuild diff in patch form.
+
+
+
+
+
+
+
+
+
+Ask ChatGPT
+
+
+
+Tools
+
+
+
+ChatGPT can make mistakes. Check importa

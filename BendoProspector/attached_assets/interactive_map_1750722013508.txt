@@ -1,0 +1,23 @@
+
+---
+title: Logarithmic Elevation Representation of Bendigo Creek
+---
+graph TD
+A[Origin: Big Hill Range 287m] -->|Steep initial gradient| B[Crusoe Reservoir 286m]
+B -->|Smooth descent| C[CBD: Charing Cross 250m-260m]
+C -->|Critical urban flow changes| D[Lake Weeroona 240m-250m]
+D -->|Greater drop zone| E[Bendigo Pottery ~200m]
+E -->|Dramatic gradient changes| F[Key Tributary: Mount Hope Confluence 87.3m]
+
+subgraph Marked Points of Interest
+  F1["Diamond Hill: Historical Mining Hub"]
+  F2["Red & Blue Shaft: Depositional Focus"]
+  F3["Dead Dog Gully: Gold Spot Post-Rain"]
+  F4["Southern Garden Gully: Hydraulic Traps"]
+end
+
+B --> F1
+D --> F2
+E --> F3
+E --> F4
+
